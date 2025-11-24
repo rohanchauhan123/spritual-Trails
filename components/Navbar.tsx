@@ -50,7 +50,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, isDark, toggle
             {[
               { label: 'Sanctuary', view: ViewState.HOME },
               { label: 'Journeys', view: ViewState.TRAILS },
-              { label: 'Oracle', view: ViewState.GUIDE }
+              { label: 'Oracle', view: ViewState.GUIDE },
+              { label: 'Contact', view: ViewState.CONTACT }
             ].map((item) => (
               <button
                 key={item.label}
@@ -116,6 +117,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, isDark, toggle
             onClick={() => { onNavigate(ViewState.GUIDE); setIsMobileMenuOpen(false); }}
           >
             Oracle Guide
+          </button>
+          <button 
+            className="text-2xl font-serif text-sand-100 hover:text-gold-400 transition-colors"
+            onClick={() => { onNavigate(ViewState.CONTACT); setIsMobileMenuOpen(false); }}
+          >
+            Contact
           </button>
         </div>
       </div>

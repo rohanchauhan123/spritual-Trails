@@ -1,21 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrailCard from './components/TrailCard';
 import GeminiGuide from './components/GeminiGuide';
 import Experiences from './components/Experiences';
 import BentoGallery from './components/BentoGallery';
-import Pricing from './components/Pricing';
+import TourPackages from './components/TourPackages';
 import Testimonials from './components/Testimonials';
+import PopularDestinations from './components/PopularDestinations';
+import Contact from './components/Contact';
+import ExperienceDetail from './components/ExperienceDetail';
 import { TRAILS } from './constants';
 import { ViewState } from './types';
 import { Mountain, Wind, Droplets, Star } from 'lucide-react';
+import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.HOME);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayView, setDisplayView] = useState<ViewState>(ViewState.HOME);
   const [isDark, setIsDark] = useState(true);
+  const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null);
+
+  // Initialize Lenis Smooth Scroll
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    // Synchronize Lenis with GSAP Ticker
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      gsap.ticker.remove(lenis.raf);
+      lenis.destroy();
+    };
+  }, []);
 
   // Toggle Dark Mode
   const toggleTheme = () => {
@@ -28,15 +66,33 @@ const App: React.FC = () => {
       setIsTransitioning(true);
       const timer = setTimeout(() => {
         setDisplayView(currentView);
-        setIsTransitioning(false);
         window.scrollTo(0, 0);
+        
+        // Slightly delayed open to ensure render happens
+        setTimeout(() => {
+          setIsTransitioning(false);
+          // Refresh ScrollTrigger after view change to recalculate positions
+          ScrollTrigger.refresh();
+        }, 100);
+        
       }, 500);
       return () => clearTimeout(timer);
     }
   }, [currentView, displayView]);
 
+  const handleExperienceClick = (id: string) => {
+    setSelectedExperienceId(id);
+    setCurrentView(ViewState.EXPERIENCE_DETAIL);
+  };
+
   const renderContent = () => {
     switch (displayView) {
+      case ViewState.EXPERIENCE_DETAIL:
+        return selectedExperienceId 
+          ? <ExperienceDetail id={selectedExperienceId} onBack={() => setCurrentView(ViewState.HOME)} /> 
+          : null;
+      case ViewState.CONTACT:
+        return <Contact />;
       case ViewState.GUIDE:
         return <GeminiGuide />;
       case ViewState.TRAILS:
@@ -69,14 +125,14 @@ const App: React.FC = () => {
             <Hero onExplore={() => setCurrentView(ViewState.TRAILS)} />
             
             {/* Scrolling Marquee */}
-            <div className="bg-gold-500 py-3 overflow-hidden whitespace-nowrap border-y border-black">
+            <div className="bg-gold-500 py-3 overflow-hidden whitespace-nowrap border-y border-black relative z-20">
               <div className="animate-marquee inline-block">
                 <span className="text-forest-950 font-bold tracking-[0.3em] mx-8 uppercase text-sm">Reconnect • Breathe • Discover • Silence • Nature • Spirit • Reconnect • Breathe • Discover • Silence • Nature • Spirit</span>
                 <span className="text-forest-950 font-bold tracking-[0.3em] mx-8 uppercase text-sm">Reconnect • Breathe • Discover • Silence • Nature • Spirit • Reconnect • Breathe • Discover • Silence • Nature • Spirit</span>
               </div>
             </div>
 
-            {/* Philosophy Section - Editorial Layout */}
+            {/* Philosophy Section */}
             <section className="py-32 bg-white dark:bg-forest-900 relative overflow-hidden transition-colors duration-700">
                <div className="container mx-auto px-6">
                  <div className="grid md:grid-cols-12 gap-12 items-center">
@@ -120,7 +176,6 @@ const App: React.FC = () => {
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-[2s] ease-luxury"
                         />
                       </div>
-                      {/* Decorative elements */}
                       <div className="absolute top-12 left-0 w-64 h-80 border border-gold-400/20 z-0 hidden md:block"></div>
                       <div className="absolute -bottom-12 -right-12 text-[12rem] font-serif text-forest-900/5 dark:text-white/5 pointer-events-none leading-none z-0">
                         ZEN
@@ -131,42 +186,20 @@ const App: React.FC = () => {
                </div>
             </section>
 
-            {/* Popular Destinations (Replaces previous Featured) */}
-            <section className="py-32 bg-sand-50 dark:bg-forest-950 transition-colors duration-700 relative">
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-forest-900/10 dark:via-white/20 to-transparent"></div>
-              
-              <div className="container mx-auto px-6">
-                 <div className="text-center mb-20">
-                    <span className="text-gold-600 dark:text-gold-400 uppercase tracking-widest text-xs font-bold border border-gold-500/30 dark:border-gold-400/30 px-4 py-2 rounded-full">Featured Expeditions</span>
-                    <h2 className="font-serif text-5xl md:text-7xl mt-8 text-forest-900 dark:text-white">Popular Destinations</h2>
-                    <p className="text-forest-800/60 dark:text-white/50 mt-6 max-w-xl mx-auto font-light">
-                      Journey to the ends of the earth.
-                    </p>
-                 </div>
-                 
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-1 px-4 md:px-0">
-                    <div className="h-[500px] overflow-hidden relative group">
-                      <img src="https://picsum.photos/seed/andes1/600/800" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 ease-luxury" alt="Andes 1" />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
-                    </div>
-                    <div className="h-[500px] overflow-hidden relative group md:-mt-12 z-10 shadow-2xl">
-                      <img src="https://picsum.photos/seed/andes2/600/800" className="w-full h-full object-cover transition-transform duration-1000 ease-luxury hover:scale-110" alt="Andes 2" />
-                      <div className="absolute bottom-8 left-8 right-8 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                         <button onClick={() => setCurrentView(ViewState.TRAILS)} className="text-sm border-b border-white pb-1 hover:text-gold-400 hover:border-gold-400 transition-colors uppercase tracking-widest text-white">View Journey</button>
-                      </div>
-                    </div>
-                    <div className="h-[500px] overflow-hidden relative group">
-                      <img src="https://picsum.photos/seed/andes3/600/800" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 ease-luxury" alt="Andes 3" />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
-                    </div>
-                 </div>
-              </div>
-            </section>
+            {/* Components */}
+            <PopularDestinations />
+            
+            {/* Experiences with interaction */}
+            <div onClick={(e) => {
+               const target = e.target as HTMLElement;
+               const card = target.closest('.group');
+               // Basic interaction placeholder
+            }}>
+              <Experiences /> 
+            </div>
 
-            {/* New Sections */}
-            <Experiences />
             <BentoGallery />
-            <Pricing />
+            <TourPackages />
             <Testimonials />
 
             {/* AI Call to Action */}
@@ -196,12 +229,16 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col font-sans text-forest-900 dark:text-sand-100 selection:bg-gold-500 selection:text-forest-950">
         <Navbar currentView={currentView} onNavigate={setCurrentView} isDark={isDark} toggleTheme={toggleTheme} />
         
-        <main className={`flex-grow transition-opacity duration-500 ease-in-out ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-          {renderContent()}
+        {/* Removed transition-opacity from main to prevent Stacking Context bugs with ScrollTrigger pinning */}
+        <main className="flex-grow">
+           {renderContent()}
         </main>
+
+        {/* Transition Curtain */}
+        <div className={`fixed inset-0 bg-sand-50 dark:bg-forest-950 z-[60] pointer-events-none transition-opacity duration-500 ease-luxury ${isTransitioning ? 'opacity-100' : 'opacity-0'}`} />
         
         {/* Footer */}
-        <footer className="bg-forest-950 dark:bg-black text-white py-20 border-t border-white/10">
+        <footer className="bg-forest-950 dark:bg-black text-white py-20 border-t border-white/10 relative z-20">
           <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12">
             <div className="col-span-1 md:col-span-4">
               <h4 className="font-serif text-3xl tracking-wider font-bold mb-6 text-white">SPIRITUAL TRAILS</h4>
@@ -220,7 +257,7 @@ const App: React.FC = () => {
             <div className="col-span-1 md:col-span-3">
                <h5 className="text-gold-400 uppercase tracking-widest text-[10px] font-bold mb-8">Contact</h5>
                <div className="text-gray-400 text-sm font-light leading-relaxed">
-                 <p>hello@spiritualtrails.com</p>
+                 <p onClick={() => setCurrentView(ViewState.CONTACT)} className="cursor-pointer hover:text-white">hello@spiritualtrails.com</p>
                  <p>+1 (555) 000-0000</p>
                  <div className="mt-4 flex gap-4">
                    <span className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:border-gold-400 transition-colors cursor-pointer">IG</span>

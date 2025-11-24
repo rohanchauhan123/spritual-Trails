@@ -1,6 +1,9 @@
 import React from 'react';
 import { EXPERIENCES } from '../constants';
 
+// Note: In a full implementation, we would pass an onExperienceClick prop here.
+// For now, the App component handles view switching, but we style this to look interactive.
+
 const Experiences: React.FC = () => {
   return (
     <section className="py-24 bg-sand-100 dark:bg-forest-900 transition-colors duration-700">
@@ -19,7 +22,7 @@ const Experiences: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {EXPERIENCES.map((exp, idx) => (
-            <div key={idx} className="group relative overflow-hidden cursor-pointer">
+            <div key={idx} className="group relative overflow-hidden cursor-pointer" onClick={() => window.dispatchEvent(new CustomEvent('navigate-experience', { detail: exp.id }))}>
               <div className="aspect-[4/5] overflow-hidden mb-6 relative">
                  <img 
                    src={exp.image} 
@@ -27,6 +30,13 @@ const Experiences: React.FC = () => {
                    className="w-full h-full object-cover transition-transform duration-[1.5s] ease-luxury group-hover:scale-110"
                  />
                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
+                 
+                 {/* Hover Reveal Button */}
+                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-3 uppercase tracking-widest text-[10px] font-bold">
+                      Read More
+                    </span>
+                 </div>
               </div>
               <div className="relative">
                 <h4 className="font-serif text-2xl text-forest-900 dark:text-sand-50 mb-2 group-hover:text-gold-600 dark:group-hover:text-gold-400 transition-colors">{exp.title}</h4>
